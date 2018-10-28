@@ -42,6 +42,6 @@ def model_arch():
 if __name__ == "__main__":
     model = model_arch()
     
-    train_model(model, DATASET_INDEX, epochs=5, batch_size=32)
+    train_model(model, DATASET_INDEX, epochs=50, batch_size=32)
     eval_model(model, DATASET_INDEX, batch_size=32)
     
