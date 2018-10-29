@@ -1,4 +1,4 @@
-function feature_vector = Extract_basic_features_cbm (data)
+function feature_vector = Extract_basic_features (data)
 n = size(data, 1);
 var_num = size(data, 2);
 feature_vector = [];
