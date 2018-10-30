@@ -281,11 +281,10 @@ class LRrestart(Callback):
         self.history = {}
         
     def clr(self):
-        if self.epoch_since_restart % self.time_steps == 0:
-            k = (self.epoch_since_restart//self.time_steps) % self.cycle_length
-            fraction_to_restart = 1 / (2**(k+1) + 5*k)
-            lr = self.lr_0 * np.sin(fraction_to_restart * np.pi)
-            return lr
+        k = (self.epoch_since_restart//self.time_steps) % self.cycle_length
+        fraction_to_restart = 1 / (2**(k+1) + 5*k)
+        lr = self.lr_0 * np.sin(fraction_to_restart * np.pi)
+        return lr
 
     def on_train_begin(self, logs={}):
         logs = logs or {}
