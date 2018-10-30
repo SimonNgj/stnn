@@ -273,15 +273,14 @@ class LRrestart(Callback):
     def __init__(self, lr_0=0.01, time_steps=2, cycle_length=5):
         
         self.lr_0 = lr_0       
-        self.epoch_since_restart = 0
-        self.next_restart = cycle_length
+        self.epoch_restart = 0
         
         self.time_steps = time_steps    
         self.cycle_length = cycle_length
         self.history = {}
         
     def clr(self):
-        k = (self.epoch_since_restart//self.time_steps) % self.cycle_length
+        k = (self.epoch_restart//self.time_steps) % self.cycle_length
         fraction_to_restart = 1 / (2**(k+1) + 5*k)
         lr = self.lr_0 * np.sin(fraction_to_restart * np.pi)
         return lr
@@ -295,12 +294,8 @@ class LRrestart(Callback):
         self.history.setdefault('lr', []).append(K.get_value(self.model.optimizer.lr))
         for k, v in logs.items():
             self.history.setdefault(k, []).append(v)
-        if epoch + 1 == self.next_restart:
-            self.epoch_since_restart = 0
-            self.next_restart += self.cycle_length
+            self.epoch_restart += 1
             self.best_weights = self.model.get_weights()
-        else:
-            self.epoch_since_restart += 1
             K.set_value(self.model.optimizer.lr, self.clr())
 
     def on_train_end(self, logs={}):
