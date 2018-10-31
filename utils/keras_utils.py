@@ -38,8 +38,7 @@ def train_model(model:Model, dataset_id, dataset_fold_id=None, epochs=50, batch_
 
     model_checkpoint = ModelCheckpoint(weight_fn, verbose=1, mode=optimization_mode, monitor=monitor, save_best_only=True, save_weights_only=True)
     reduce_lr = ReduceLROnPlateau(monitor=monitor, patience=100, mode=optimization_mode, factor=factor, cooldown=0, min_lr=1e-4, verbose=2)
-    callback_list = [model_checkpoint, reduce_lr]
-
+    
     optm = Adam(lr=learning_rate)
 
     if compile_model:
@@ -49,7 +48,8 @@ def train_model(model:Model, dataset_id, dataset_fold_id=None, epochs=50, batch_
         X_test = X_test[:val_subset]
         y_test = y_test[:val_subset]
 
-    lr_restart = LRrestart(lr_0=0.01,  time_steps=2, cycle_length=5)
+    lr_restart = LRrestart(lr_0=0.001,  time_steps=2, cycle_length=5)
+    callback_list = [model_checkpoint, reduce_lr]
     
     model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs, callbacks=callback_list,
               class_weight=class_weight, verbose=2, validation_data=(X_test, y_test))
