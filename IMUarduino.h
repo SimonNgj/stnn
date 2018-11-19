@@ -36,12 +36,12 @@ void setup()
 
   if (!imu1.begin())
   {
-    Serial.println("Failed to communicate with LSM9DS1_1.");
+    Serial.println("Failed to communicate with LSM9DS1_1_right.");
     while (1) ;
   }
   if (!imu2.begin())
   {
-    Serial.println("Failed to communicate with LSM9DS1_2.");
+    Serial.println("Failed to communicate with LSM9DS1_2_left.");
     while (1) ;
   }
 }
