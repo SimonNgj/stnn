@@ -49,10 +49,10 @@ void setup()
 void loop()
 {
   // Update the sensor values whenever new data is available 1
-  if ( imu1.gyroAvailable() )  imu1.readGyro();
+  if ( imu1.gyroAvailable() )   imu1.readGyro();
   if ( imu1.accelAvailable() )  imu1.readAccel();
   // Update the sensor values whenever new data is available 2
-  if ( imu2.gyroAvailable() )  imu2.readGyro();
+  if ( imu2.gyroAvailable() )   imu2.readGyro();
   if ( imu2.accelAvailable() )  imu2.readAccel();
   
     Serial.print(i); Serial.print(",");
