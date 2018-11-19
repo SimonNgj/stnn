@@ -24,7 +24,7 @@ int i = 0;
 
 void setup() 
 {
-  Serial.begin(250000);
+  Serial.begin(115200);
   
   imu1.settings.device.commInterface = IMU_MODE_I2C;
   imu1.settings.device.mAddress = LSM9DS1_M1;
