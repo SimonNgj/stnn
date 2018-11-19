@@ -49,48 +49,24 @@ void setup()
 void loop()
 {
   // Update the sensor values whenever new data is available 1
-  if ( imu1.gyroAvailable() )
-  {
-    imu1.readGyro();
-  }
-  if ( imu1.accelAvailable() )
-  {
-    imu1.readAccel();
-  }
+  if ( imu1.gyroAvailable() )  imu1.readGyro();
+  if ( imu1.accelAvailable() )  imu1.readAccel();
   // Update the sensor values whenever new data is available 2
-  if ( imu2.gyroAvailable() )
-  {
-    imu2.readGyro();
-  }
-  if ( imu2.accelAvailable() )
-  {
-    imu2.readAccel();
-  }
+  if ( imu2.gyroAvailable() )  imu2.readGyro();
+  if ( imu2.accelAvailable() )  imu2.readAccel();
   
-    Serial.print(i);
-    Serial.print(",");
-    Serial.print(int16_t(imu1.ax));
-    Serial.print(",");
-    Serial.print(int16_t(imu1.ay));
-    Serial.print(",");
-    Serial.print(int16_t(imu1.az));
-    Serial.print(",");
-    Serial.print(int16_t(imu1.gx));
-    Serial.print(",");
-    Serial.print(int16_t(imu1.gy));
-    Serial.print(",");
-    Serial.print(int16_t(imu1.gz));
-    Serial.print(",");
-    Serial.print(int16_t(imu2.ax));
-    Serial.print(",");
-    Serial.print(int16_t(imu2.ay));
-    Serial.print(",");
-    Serial.print(int16_t(imu2.az));
-    Serial.print(",");
-    Serial.print(int16_t(imu2.gx));
-    Serial.print(",");
-    Serial.print(int16_t(imu2.gy));
-    Serial.print(",");
+    Serial.print(i); Serial.print(",");
+    Serial.print(int16_t(imu1.ax)); Serial.print(",");
+    Serial.print(int16_t(imu1.ay)); Serial.print(",");
+    Serial.print(int16_t(imu1.az)); Serial.print(",");
+    Serial.print(int16_t(imu1.gx)); Serial.print(",");
+    Serial.print(int16_t(imu1.gy)); Serial.print(",");
+    Serial.print(int16_t(imu1.gz)); Serial.print(",");
+    Serial.print(int16_t(imu2.ax)); Serial.print(",");
+    Serial.print(int16_t(imu2.ay)); Serial.print(",");
+    Serial.print(int16_t(imu2.az)); Serial.print(",");
+    Serial.print(int16_t(imu2.gx)); Serial.print(",");
+    Serial.print(int16_t(imu2.gy)); Serial.print(",");
     Serial.print(int16_t(imu2.gz));
     Serial.print("\n");
   i++;
