@@ -21,10 +21,11 @@ LSM9DS1 imu2;
 #define LSM9DS1_M2   0x1C // Would be 0x1C if SDO_M is LOW
 #define LSM9DS1_AG2  0x6A // Would be 0x6A if SDO_AG is LOW
 int i = 0;
+long loop_timer;
 
 void setup() 
 {
-  Serial.begin(115200);
+  Serial.begin(57600);
   
   imu1.settings.device.commInterface = IMU_MODE_I2C;
   imu1.settings.device.mAddress = LSM9DS1_M1;
@@ -44,6 +45,7 @@ void setup()
     Serial.println("Failed to communicate with LSM9DS1_2_left.");
     while (1) ;
   }
+  loop_timer = micros(); 
 }
 
 void loop()
@@ -69,5 +71,8 @@ void loop()
     Serial.print(int16_t(imu2.gy)); Serial.print(",");
     Serial.print(int16_t(imu2.gz));
     Serial.print("\n");
+  
+  while(micros() - loop_timer < 100000);     //Sample rate: 10Hz
+  loop_timer = micros();//Reset the loop timer
   i++;
 }
