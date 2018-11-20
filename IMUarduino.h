@@ -30,14 +30,10 @@ void setup()
   imu1.settings.device.commInterface = IMU_MODE_I2C;
   imu1.settings.device.mAddress = LSM9DS1_M1;
   imu1.settings.device.agAddress = LSM9DS1_AG1;
-  imu1.settings.gyro.sampleRate = 1;
-  imu1.settings.accel.sampleRate = 1;
 
   imu2.settings.device.commInterface = IMU_MODE_I2C;
   imu2.settings.device.mAddress = LSM9DS1_M2;
   imu2.settings.device.agAddress = LSM9DS1_AG2;
-  imu2.settings.gyro.sampleRate = 1;
-  imu2.settings.accel.sampleRate = 1;
 
   if (!imu1.begin()){
     Serial.println("Failed to communicate with LSM9DS1_1.");
