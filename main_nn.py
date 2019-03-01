@@ -9,6 +9,7 @@ import numpy as np
 import random
 import scipy.io as sio
 from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 from sklearn.preprocessing import LabelEncoder
@@ -179,7 +180,7 @@ print("Ready to train")
 " creating CNN "
 def model_arch():
     ip = Input(shape=(sizeD_ts,sizeD_va), name='main_input')
-    x1 = Permute((2, 1))(ip)
+    #x1 = Permute((2, 1))(ip)
     x1 = LSTM(8, return_sequences=True)(x1)
     x1 = LSTM(8)(x1)
 
@@ -224,5 +225,14 @@ if __name__ == "__main__":
     print("Skill: ", skill)
     if (cv_scheme == 1):
         print("User out:", user)
-    print('Accuracy:' + str(np.sum(y_pred == y_test)/y_pred.shape[0]))
-    print(classification_report(y_test, y_pred))
+    cr = classification_report(y_test, y_pred)
+    cm = confusion_matrix(y_test, y_pred)
+    acc = np.sum(y_pred == y_test)/y_pred.shape[0]
+    print('Accuracy:' + str(acc))
+    print(cr)
+    print(cm)
+    f = open(skill+'_'+str(user)+'_report.txt', 'w')
+    f.write('-------------' + skill + ": " + str(user) + '----------------\n\n')
+    f.write('Accuracy:' + str(acc))
+    f.write('\n\nClassification Report\n\n{}\n\nConfusion Matrix\n\n{}\n'.format(cr, cm))
+    f.close()
