@@ -23,6 +23,7 @@ import keras.backend as K
 from keras.callbacks import Callback
 from keras.callbacks import EarlyStopping
 list_skill = ["Both", "Acc", "Gyro"]
+time_tt = 4
 class LRrestart(Callback):
     def __init__(self, min_lr, max_lr, steps_per_epoch, lr_decay=1, cycle_length=10, mult_factor=2):
         self.min_lr = min_lr
@@ -56,9 +57,9 @@ class LRrestart(Callback):
             self.max_lr *= self.lr_decay
             self.best_weights = self.model.get_weights()
     def on_train_end(self, logs={}):
-        self.model.set_weights(self.best_weights)      
+        self.model.set_weights(self.best_weights)
 def model_arch():
-    ip = Input(shape=(sizeD_ts, sizeD_va), name='main_input') 
+    ip = Input(shape=(sizeD_ts, sizeD_va), name='main_input')  
     x = Conv1D(16, 7, padding='same', kernel_initializer='he_uniform')(ip)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
@@ -72,9 +73,8 @@ def model_arch():
     model = Model(ip, out)
     #model.summary()
     return model
-# Parallel with permute
 def model_arch1():
-    ip = Input(shape=(sizeD_ts, sizeD_va), name='main_input')
+    ip = Input(shape=(sizeD_ts, sizeD_va), name='main_input') 
     x1 = Conv1D(16, 7, padding='same', kernel_initializer='he_uniform')(ip)
     x1 = BatchNormalization()(x1)
     x1 = Activation('relu')(x1)
@@ -85,7 +85,24 @@ def model_arch1():
     x1 = GlobalAveragePooling1D()(x1)
     x2 = Permute((2, 1))(ip)
     x2 = LSTM(8, return_sequences=True)(x2)
-    x2 = LSTM(8)(x2) 
+    x2 = LSTM(8)(x2)
+    x = concatenate([x1, x2])
+    out = Dense(3, kernel_regularizer=regularizers.l2(0.001), activation='softmax')(x)
+    model = Model(ip, out)
+    #model.summary()
+    return model
+def model_arch2():
+    ip = Input(shape=(sizeD_ts, sizeD_va), name='main_input')
+    x1 = Conv1D(16, 7, padding='same', kernel_initializer='he_uniform')(ip)
+    x1 = BatchNormalization()(x1)
+    x1 = Activation('relu')(x1)
+    x1 = squeeze_excite_block(x1)
+    x1 = Conv1D(32, 5, padding='same', kernel_initializer='he_uniform')(x1)
+    x1 = BatchNormalization()(x1)
+    x1 = Activation('relu')(x1)
+    x1 = GlobalAveragePooling1D()(x1)  
+    x2 = LSTM(8, return_sequences=True)(ip)
+    x2 = LSTM(8)(x2)
     x = concatenate([x1, x2])
     out = Dense(3, kernel_regularizer=regularizers.l2(0.001), activation='softmax')(x)
     model = Model(ip, out)
@@ -93,9 +110,6 @@ def model_arch1():
     return model
 for skill in list_skill:
     for tim in range(1,time_tt):
-        acc_1 = []
-        accu = 0
-        # users in Group
         novice = ['A', 'B', 'D', 'K', 'L', 'M', 'N']
         intermediate = ['E', 'G', 'H']
         expert = ['C', 'F', 'I', 'J']
@@ -103,14 +117,20 @@ for skill in list_skill:
         features = dataset['dataX']
         sizeD_ts = (((features[0,0:1])[0])[0,:])[0].shape[0]
         sizeD_va = (((features[0,0:1])[0])[0,:])[0].shape[1]
+        print('loaded the dataset')
+        print('Pre-process data')
         for user in range(1,6):
-            for uv in [x for x in range(1,6) if x!=user]:
+            acc_1 = []
+            accu = 0
+            for uv in [x for x in range(1,6) if x!=user]:      
+                " Initialize data for concatenation "
                 X_test1 = np.ones((1,sizeD_ts,sizeD_va))
                 y_test1 = np.ones(1)
                 X_val1 = np.ones((1,sizeD_ts,sizeD_va))
                 y_val1 = np.ones(1)
                 X_train1 = np.ones((1,sizeD_ts,sizeD_va))
                 y_train1 = np.ones(1)
+                # Extract data for training and testing
                 for j in range(0,3): # 3 means 3 groups
                     for i in range(0, (((features[0,j:j+1])[0])[0,:]).shape[0]):
                         k = (((features[0,j:j+1])[0])[2,:])[i]
@@ -119,6 +139,7 @@ for skill in list_skill:
                             temp_x1 = temp_x.reshape(1,sizeD_ts,sizeD_va)
                             X_test1 = np.concatenate((X_test1, temp_x1), axis=0) 
                             user_temp = (((features[0,j:j+1])[0])[1,:])[i]
+        
                             if(user_temp in novice):
                                 y_test1 = np.concatenate((y_test1,[0]))
                             elif(user_temp in intermediate):
@@ -146,28 +167,35 @@ for skill in list_skill:
                             elif(user_temp in intermediate):
                                 y_train1 = np.concatenate((y_train1,[1]))
                             elif(user_temp in expert):
-                                y_train1 = np.concatenate((y_train1,[2]))
+                                y_train1 = np.concatenate((y_train1,[2]))                       
+                    " Delete the first column "
                     X_test1 = np.delete(X_test1,np.s_[0:1], axis=0)
                     y_test1 = np.delete(y_test1,np.s_[0:1])
                     X_train1 = np.delete(X_train1,np.s_[0:1], axis=0)
                     y_train1 = np.delete(y_train1,np.s_[0:1])
                     X_val1 = np.delete(X_val1,np.s_[0:1], axis=0)
                     y_val1 = np.delete(y_val1,np.s_[0:1])
+                    X_trainA1 = np.concatenate((X_train1,X_val1))
+                    y_trainA1 = np.concatenate((y_train1,y_val1))
+                    " Shuffle the training and testing data "
                     X_test, y_test = shuffle(X_test1, y_test1, random_state = random.randint(10,50))
                     X_train, y_train = shuffle(X_train1, y_train1, random_state = random.randint(10,50))
                     X_val, y_val = shuffle(X_val1, y_val1, random_state = random.randint(10,50))
+                    X_trainA, y_trainA = shuffle(X_trainA1, y_trainA1, random_state = random.randint(10,50))
                     classes = np.unique(y_train)
                     le = LabelEncoder()
                     y_ind = le.fit_transform(y_train.ravel())
                     recip_freq = len(y_train) / (len(le.classes_) * np.bincount(y_ind).astype(np.float64))
-                    class_weight = recip_freq[le.transform(classes)]
+                    class_weight = recip_freq[le.transform(classes)]   
                 " One-hot coding"
                 labels_train = to_categorical(y_train)
                 labels_test = to_categorical(y_test)
                 labels_val = to_categorical(y_val)
+                labels_trainA = to_categorical(y_trainA)
+                print("Ready to train")
                 model = model_arch1()
                 epochs_s = 100
-                batch_s = 32
+                batch_s = 16
                 learning_rate = 1e-3   
                 weight_fn = "./weightsMCH/weights_"+skill+".h5"
                 model_checkpoint = ModelCheckpoint(weight_fn, verbose=1, mode='max', monitor='val_acc', save_best_only=True, save_weights_only=True)
@@ -178,24 +206,47 @@ for skill in list_skill:
                 model.compile(optimizer=optm, loss='categorical_crossentropy', metrics=['accuracy'])
                 model.fit(X_train, labels_train, batch_size=batch_s, epochs=epochs_s, callbacks = callback_list, class_weight=class_weight, verbose=2, validation_data=(X_val, labels_val))
                 model.load_weights(weight_fn)
-                prediction = model.predict(X_test);
+                prediction = model.predict(X_val);
                 y_pred = np.argmax(prediction, axis=1)
-                cr = classification_report(y_test, y_pred)
-                cm = confusion_matrix(y_test, y_pred)
+                cr = classification_report(y_val, y_pred)
+                cm = confusion_matrix(y_val, y_pred)
+                print("-------------------------------------------")
                 print("Skill: ", skill)
                 print("User out:", user)
-                acc = np.sum(y_pred == y_test)/y_pred.shape[0]
+                print("Val out:", uv)
+                acc = np.sum(y_pred == y_val)/y_pred.shape[0]
                 acc_1.append(acc)
                 print('Accuracy Val:' + str(acc))               
                 print(cr)
                 print(cm)
-                f = open(str(tim)+str(uv)+skill+'_report_MCH_full.txt', 'a+')
-                f.write('-------------' + skill + ": " + str(user) + '----------------\n\n')
+                print("-------------------------------------------")
+                f = open(str(tim)+'_'+str(user)+'_'+skill+'_report_MCH.txt', 'a+')
+                f.write('-------------' + skill + ": " + str(user) + ", val: " + str(uv) + '----------------\n\n')
                 f.write('Accuracy:' + str(acc))
-                f.write('\n\nClassification Report\n\n{}\n\nConfusion Matrix\n\n{}\n'.format(cr, cm))
+                f.write('\n\nClassification Report\n\n{}\n\nConfusion Matrix\n\n{}\n\n'.format(cr, cm))
             for i in range(0,4):
                 accu += acc_1[i]
             accu = accu/4
+            f.write("\n\n----------------------o0o--------------------\n")
+            f.write("Ave val acc = " + str(accu))
+            f.write("\n-----------------------o0o--------------------\n")
+            model.fit(X_trainA, labels_trainA, batch_size=batch_s, epochs=epochs_s, callbacks = callback_list, class_weight=class_weight, verbose=2)
+            model.load_weights(weight_fn)
+            prediction = model.predict(X_test);
+            y_pred = np.argmax(prediction, axis=1)
+            cr = classification_report(y_test, y_pred)
+            cm = confusion_matrix(y_test, y_pred)
+            print("-------------------------------------------")
+            print("Skill: ", skill)
+            print("User out:", user)
+            acc = np.sum(y_pred == y_test)/y_pred.shape[0]
+            acc_1.append(acc)
+            print('Accuracy Test = ' + str(acc))     
             f.write("\n-------------------------------------------\n")
-            f.write("Acc = " + str(accu))
-            f.close()   
+            f.write('\n\nClassification Report\n\n{}\n\nConfusion Matrix\n\n{}\n\n'.format(cr, cm))
+            f.write("\n\n-------------------------------------------\n\n")
+            f.write('Accuracy Test = ' + str(acc))
+            f.write("\n\n----------------------o0o---------------------\n")
+            print(cr)
+            print(cm)
+            f.close()      
