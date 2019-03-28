@@ -168,31 +168,31 @@ for skill in list_skill:
                                 y_train1 = np.concatenate((y_train1,[1]))
                             elif(user_temp in expert):
                                 y_train1 = np.concatenate((y_train1,[2]))                       
-                    " Delete the first column "
-                    X_test1 = np.delete(X_test1,np.s_[0:1], axis=0)
-                    y_test1 = np.delete(y_test1,np.s_[0:1])
-                    X_train1 = np.delete(X_train1,np.s_[0:1], axis=0)
-                    y_train1 = np.delete(y_train1,np.s_[0:1])
-                    X_val1 = np.delete(X_val1,np.s_[0:1], axis=0)
-                    y_val1 = np.delete(y_val1,np.s_[0:1])
-                    X_trainA1 = np.concatenate((X_train1,X_val1))
-                    y_trainA1 = np.concatenate((y_train1,y_val1))
-                    " Shuffle the training and testing data "
-                    X_test, y_test = shuffle(X_test1, y_test1, random_state = random.randint(10,50))
-                    X_train, y_train = shuffle(X_train1, y_train1, random_state = random.randint(10,50))
-                    X_val, y_val = shuffle(X_val1, y_val1, random_state = random.randint(10,50))
-                    X_trainA, y_trainA = shuffle(X_trainA1, y_trainA1, random_state = random.randint(10,50))
-                    classes = np.unique(y_train)
-                    le = LabelEncoder()
-                    y_ind = le.fit_transform(y_train.ravel())
-                    recip_freq = len(y_train) / (len(le.classes_) * np.bincount(y_ind).astype(np.float64))
-                    class_weight = recip_freq[le.transform(classes)]   
+                " Delete the first column "
+                X_test1 = np.delete(X_test1,np.s_[0:1], axis=0)
+                y_test1 = np.delete(y_test1,np.s_[0:1])
+                X_train1 = np.delete(X_train1,np.s_[0:1], axis=0)
+                y_train1 = np.delete(y_train1,np.s_[0:1])
+                X_val1 = np.delete(X_val1,np.s_[0:1], axis=0)
+                y_val1 = np.delete(y_val1,np.s_[0:1])
+                X_trainA1 = np.concatenate((X_train1,X_val1))
+                y_trainA1 = np.concatenate((y_train1,y_val1))
+                " Shuffle the training and testing data "
+                X_test, y_test = shuffle(X_test1, y_test1, random_state = random.randint(10,50))
+                X_train, y_train = shuffle(X_train1, y_train1, random_state = random.randint(10,50))
+                X_val, y_val = shuffle(X_val1, y_val1, random_state = random.randint(10,50))
+                X_trainA, y_trainA = shuffle(X_trainA1, y_trainA1, random_state = random.randint(10,50))
+                classes = np.unique(y_train)
+                le = LabelEncoder()
+                y_ind = le.fit_transform(y_train.ravel())
+                recip_freq = len(y_train) / (len(le.classes_) * np.bincount(y_ind).astype(np.float64))
+                class_weight = recip_freq[le.transform(classes)]   
                 " One-hot coding"
                 labels_train = to_categorical(y_train)
                 labels_test = to_categorical(y_test)
                 labels_val = to_categorical(y_val)
                 labels_trainA = to_categorical(y_trainA)
-                print("Ready to train")
+                #print("Ready to train")
                 model = model_arch1()
                 epochs_s = 100
                 batch_s = 16
@@ -201,7 +201,7 @@ for skill in list_skill:
                 model_checkpoint = ModelCheckpoint(weight_fn, verbose=1, mode='max', monitor='val_acc', save_best_only=True, save_weights_only=True)
                 lr_restart = LRrestart(min_lr=1e-5, max_lr=1e-2, steps_per_epoch=np.ceil(epochs_s/batch_s), lr_decay=0.9, cycle_length=5, mult_factor=1.5)
                 callback_list = [model_checkpoint, lr_restart,EarlyStopping(monitor='val_loss', patience=15)]
-#                callback_list = [model_checkpoint]
+                #callback_list = [model_checkpoint]
                 optm = Adam(lr=learning_rate)
                 model.compile(optimizer=optm, loss='categorical_crossentropy', metrics=['accuracy'])
                 model.fit(X_train, labels_train, batch_size=batch_s, epochs=epochs_s, callbacks = callback_list, class_weight=class_weight, verbose=2, validation_data=(X_val, labels_val))
