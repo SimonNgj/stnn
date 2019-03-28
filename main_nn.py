@@ -125,21 +125,21 @@ for skill in list_skill:
                             y_train1 = np.concatenate((y_train1,[1]))
                         elif(user_temp in expert):
                             y_train1 = np.concatenate((y_train1,[2]))
-                X_test1 = np.delete(X_test1,np.s_[0:1], axis=0)
-                y_test1 = np.delete(y_test1,np.s_[0:1])
-                X_train1 = np.delete(X_train1,np.s_[0:1], axis=0)
-                y_train1 = np.delete(y_train1,np.s_[0:1])
-                X_test, y_test = shuffle(X_test1, y_test1, random_state = random.randint(10,50))
-                X_train, y_train = shuffle(X_train1, y_train1, random_state = random.randint(10,50))
-                classes = np.unique(y_train)
-                le = LabelEncoder()
-                y_ind = le.fit_transform(y_train.ravel())
-                recip_freq = len(y_train) / (len(le.classes_) * np.bincount(y_ind).astype(np.float64))
-                class_weight = recip_freq[le.transform(classes)]
+            X_test1 = np.delete(X_test1,np.s_[0:1], axis=0)
+            y_test1 = np.delete(y_test1,np.s_[0:1])
+            X_train1 = np.delete(X_train1,np.s_[0:1], axis=0)
+            y_train1 = np.delete(y_train1,np.s_[0:1])
+            X_test, y_test = shuffle(X_test1, y_test1, random_state = random.randint(10,50))
+            X_train, y_train = shuffle(X_train1, y_train1, random_state = random.randint(10,50))
+            classes = np.unique(y_train)
+            le = LabelEncoder()
+            y_ind = le.fit_transform(y_train.ravel())
+            recip_freq = len(y_train) / (len(le.classes_) * np.bincount(y_ind).astype(np.float64))
+            class_weight = recip_freq[le.transform(classes)]
             " One-hot coding"
             labels_train = to_categorical(y_train)
             labels_test = to_categorical(y_test)
-            print("Ready to train")
+            #print("Ready to train")
             model = model_arch()
             epochs_s = 100
             batch_s = 16
@@ -149,7 +149,7 @@ for skill in list_skill:
             lr_restart = LRrestart(min_lr=1e-5, max_lr=1e-2, steps_per_epoch=np.ceil(epochs_s/batch_s), lr_decay=0.9, cycle_length=5, mult_factor=1.5)
             stop = EarlyStopping(monitor='val_loss', patience=10)
             callback_list = [model_checkpoint, lr_restart,stop]
-#            callback_list = [model_checkpoint, stop]
+            #callback_list = [model_checkpoint, stop]
             optm = Adam(lr=learning_rate)
             model.compile(optimizer=optm, loss='categorical_crossentropy', metrics=['accuracy'])
             model.fit(X_train, labels_train, batch_size=batch_s, epochs=epochs_s, callbacks = callback_list, class_weight=class_weight, verbose=2, validation_data=(X_test, labels_test))
