@@ -86,7 +86,7 @@ void loop()
     Serial.print(int16_t(imu2.mz));*/
     Serial.print("\n");
 
-    while(micros() - loop_timer < 10000);     //Sample rate: 100Hz
+    while(micros() - loop_timer < 10000);     //Sample rate: 100Hz ~ (1/100)*10^6
     loop_timer = micros();//Reset the loop timer
     i++;
 }
